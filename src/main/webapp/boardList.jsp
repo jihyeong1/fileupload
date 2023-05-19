@@ -83,7 +83,7 @@
 							</a>
 						</td>
 						<td>
-							<a href="<%=request.getContextPath()%>/removeBoardAction.jsp">
+							<a href="<%=request.getContextPath()%>/removeBoardAction.jsp?boardTitle=<%=m.get("boardTitle")%>">
 								<img alt="*" src="./img/remove.png" style="width: 30px; ">
 							</a>
 						</td>
