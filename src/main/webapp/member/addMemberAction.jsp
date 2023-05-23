@@ -60,7 +60,7 @@
 	//중복된 아이디가 있는경우
 	if(rs.next()){ 
 		msg = URLEncoder.encode("중복된 ID입니다", "utf-8");
-		response.sendRedirect(request.getContextPath()+"/member/insertMemberForm.jsp?msg="+msg);
+		response.sendRedirect(request.getContextPath()+"/member/addMember.jsp?msg="+msg);
 		return;
 	}
 	

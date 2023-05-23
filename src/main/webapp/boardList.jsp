@@ -5,7 +5,19 @@
 <%
 	//로그인아이디 변수 저장
 	String loginMemberId = (String)session.getAttribute("loginMemberId");
+	
+	//현재페이지 설정
+	int currentPage = 1;
+	if(request.getParameter("currentPage") != null){
+		currentPage = Integer.parseInt(request.getParameter("currentPage"));
+	}
+	
+	//출력행 갯수 설정
+	int rowPerPage = 5;
+	//시작 행 설정
+	int beginRow = (currentPage-1)*rowPerPage;
 
+	
 	//디비연결
 	String driver = "org.mariadb.jdbc.Driver";
 	String dbUrl = "jdbc:mariadb://127.0.0.1:3306/fileupload";
@@ -15,13 +27,36 @@
 	Connection conn = null;
 	conn = DriverManager.getConnection(dbUrl, dbUser, dbPw);
 	
-	/*
-		SELECT b.board_title boardTitle, b.member_id memberId, f.origin_filename originFilename , f.save_filename saveFilename, path
-		FROM board b INNER JOIN board_file f
-		ON b.board_no = f.board_no
-		ORDER BY b.createdate DESC
-	*/
+	//총 출력 행 설정
+	int totalRow = 0;
+	String totalRowSql = "select count(*) from board";
+	PreparedStatement totalRowStmt = conn.prepareStatement(totalRowSql);
+	ResultSet totalRowRs = totalRowStmt.executeQuery();
+	if(totalRowRs.next()){
+		totalRow = totalRowRs.getInt("count(*)");
+	}
+
+	//마지막 페이지 설정
+	int lastPage = totalRow / rowPerPage;
+	if(totalRow % lastPage != 0){
+		lastPage = lastPage+1;
+	}
+	// 하단에 나타낼 숫자 갯수 설정
+	int pagePerPage = 5;
+	// 하단에 나타낼 가장 최소 숫자
+	int minPage = ((currentPage-1)/pagePerPage)*pagePerPage +1;
+	int maxPage = minPage + (pagePerPage-1);
+	if(maxPage > lastPage){
+		maxPage = lastPage;
+	}
 	
+	/*
+	SELECT b.board_title boardTitle, b.member_id memberId, f.origin_filename originFilename , f.save_filename saveFilename, path
+	FROM board b INNER JOIN board_file f
+	ON b.board_no = f.board_no
+	ORDER BY b.createdate DESC
+*/
+
 	String sql="SELECT b.board_no boardNo, b.board_title boardTitle, b.member_id memberId, f.board_file_no boardFileNo, f.origin_filename originFilename , f.save_filename saveFilename, path, f.createdate FROM board b INNER JOIN board_file f ON b.board_no = f.board_no ORDER BY b.createdate DESC";
 	PreparedStatement stmt = conn.prepareStatement(sql);
 	ResultSet rs = stmt.executeQuery();
@@ -132,6 +167,30 @@
 			%>
 				</tr>
 		</table>
+		<!-- 페이징설정 -->
+		<%
+			if(minPage>1){
+		%>
+				<a href="<%=request.getContextPath()%>/boardList.jsp?currentPage=<%=minPage - 1%>">이전</a>
+		<%		
+			}
+				//하단 숫자 설정
+				for(int i=minPage; i<=maxPage; i+=1){
+					if( i == currentPage){
+				%>
+					<span><%=i %></span>
+				<% 	
+					}else{
+				%>
+					<a href="<%=request.getContextPath()%>/boardList.jsp?currentPage=<%=i%>"><%=i%></a>
+				<%	
+				}}
+			if(maxPage == lastPage){
+		%>
+				<a href="<%=request.getContextPath()%>/boardList.jsp?currentPage=<%=maxPage+1%>">다음</a>
+		<%		
+			}
+		%>	
 </div>
 
 <!-- ----하단 카피라이트------ -->
