@@ -4,8 +4,11 @@
 	//로그인 되지않은 사용자가 넘어왔을 때 로그인 페이지로 이동
 	if(session.getAttribute("loginMemberId") == null){
 		response.sendRedirect(request.getContextPath()+"/login.jsp");
-		return;
+		return;		
 	}
+
+	// 로그인 아이디 변수 저장
+	String loginMemberId = (String)session.getAttribute("loginMemberId");
 %>    
 <!DOCTYPE html>
 <html>
@@ -53,16 +56,11 @@
 					<textarea rows="3" cols="50" name="boardTitle" required="required"></textarea>
 				</td>
 			</tr>
-			
-			<!-- 로그인 사용자 아이디-->
-			<%
-				/* String memberId = (String)session.getAttribute("loginMemberId"); 나중에 이거 로그인할때 작성하면됨*/
-				String memberId = "test";
-			%>
+
 			<tr>
 				<th>member_id</th>
 				<td>
-					<input type="text" name="memberId" value="<%=/*세션에 저장된 아이디가 들어가면*/memberId%>" readonly="readonly">
+					<input type="text" name="memberId" value="<%=/*세션에 저장된 아이디가 들어가면*/loginMemberId%>" readonly="readonly">
 				</td>
 			</tr>
 			

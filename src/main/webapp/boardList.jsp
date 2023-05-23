@@ -3,6 +3,9 @@
 <%@ page import = "java.sql.*" %>  
 <%@ page import = "java.util.*" %>
 <%
+	//로그인아이디 변수 저장
+	String loginMemberId = (String)session.getAttribute("loginMemberId");
+
 	//디비연결
 	String driver = "org.mariadb.jdbc.Driver";
 	String dbUrl = "jdbc:mariadb://127.0.0.1:3306/fileupload";
@@ -13,25 +16,29 @@
 	conn = DriverManager.getConnection(dbUrl, dbUser, dbPw);
 	
 	/*
-		SELECT b.board_title boardTitle, f.origin_filename originFilename , f.save_filename saveFilename, path
+		SELECT b.board_title boardTitle, b.member_id memberId, f.origin_filename originFilename , f.save_filename saveFilename, path
 		FROM board b INNER JOIN board_file f
 		ON b.board_no = f.board_no
 		ORDER BY b.createdate DESC
 	*/
 	
-	String sql="SELECT b.board_title boardTitle, f.origin_filename originFilename , f.save_filename saveFilename, path, f.createdate FROM board b INNER JOIN board_file f ON b.board_no = f.board_no ORDER BY b.createdate DESC";
+	String sql="SELECT b.board_no boardNo, b.board_title boardTitle, b.member_id memberId, f.board_file_no boardFileNo, f.origin_filename originFilename , f.save_filename saveFilename, path, f.createdate FROM board b INNER JOIN board_file f ON b.board_no = f.board_no ORDER BY b.createdate DESC";
 	PreparedStatement stmt = conn.prepareStatement(sql);
 	ResultSet rs = stmt.executeQuery();
 	ArrayList<HashMap<String, Object>> list = new ArrayList<>();
 	while(rs.next()){
 		HashMap<String, Object> m = new HashMap<>();
+		m.put("boardNo", rs.getInt("boardNo"));
 		m.put("boardTitle", rs.getString("boardTitle"));
+		m.put("memberId", rs.getString("memberId"));
+		m.put("boardFileNo", rs.getInt("boardFileNo"));
 		m.put("originFilename", rs.getString("originFilename"));
 		m.put("saveFilename", rs.getString("saveFilename"));
 		m.put("path", rs.getString("path"));
 		m.put("createdate", rs.getString("createdate"));
 		list.add(m);
 	}
+	
 %>    
     
 <!DOCTYPE html>
@@ -62,9 +69,11 @@
 			<!-- 자료 업로드 제목글 -->
 			<tr>
 				<th>게시글 제목</th>
-				<th>원본 파일이름</th>	
+				<th>원본 파일이름</th>
+				<th>글쓴이</th>	
 				<th>업로드날짜</th>	
 				<th>다운로드</th>	
+				<th>파일 수정</th>
 				<th>삭제</th>	
 			</tr>
 			<%
@@ -73,32 +82,55 @@
 					<tr>
 						<td><%=(String)m.get("boardTitle") %></td>
 						<td><%=(String)m.get("originFilename")%></td>
+						<td><%=(String)m.get("memberId") %></td>
 						<td><%=(String)m.get("createdate") %></td>
 			<%		
-					if(session.getAttribute("loginMemberId") != null){
+					//로그인했을 때만 다운로드 수정 삭제가 보일 수 있도록 설정
+					if(loginMemberId != null){
 			%>
 						<td>
 							<a href="<%=request.getContextPath()%>/<%=(String)m.get("path")%>/<%=(String)m.get("saveFilename")%>" download="<%=(String)m.get("originFilename")%>">
 								<img alt="*" src="./img/download.png" style="width: 30px; ">
 							</a>
 						</td>
-						<td>
-							<a href="<%=request.getContextPath()%>/removeBoardAction.jsp?boardTitle=<%=m.get("boardTitle")%>">
-								<img alt="*" src="./img/remove.png" style="width: 30px; ">
-							</a>
-						</td>
+						<%
+							//내가 쓴 글만 수정 삭제 할 수 있도록 설정
+							//loginMemberId 와 memberId 가 일치 할때 만 수정 삭제 이모티콘 나올 수 있도록 설정
+							if(loginMemberId != null && loginMemberId.equals((String)m.get("memberId"))){
+						%>
+								<!-- 수정 -->
+								<td>
+									<a href="<%=request.getContextPath()%>/modifyBoard.jsp?boardNo=<%=m.get("boardNo")%>&boardFileNo=<%=m.get("boardFileNo")%>">
+										<img alt="*" src="./img/modify.png" style="width: 30px; ">
+									</a>
+								</td>
+								
+								<!-- 삭제 -->
+								<td>
+									<a href="<%=request.getContextPath()%>/removeBoardAction.jsp?boardNo=<%=m.get("boardNo")%>&saveFilename=<%=m.get("saveFilename")%>&path=<%=m.get("path")%>">
+										<img alt="*" src="./img/remove.png" style="width: 30px; ">
+									</a>
+								</td>
+						<%		
+							}else{
+						%>
+								<!-- 빈칸 출력 -->
+								<td></td>
+								<td></td>
+						<%		
+							}
+						%>
 			<%			
 					}else{
 			%>	
+						<!-- 빈칸 출력 -->
 						<td></td>
 						<td></td>		
+						<td></td>
 			<%			
-					}
+					}}
 			%>
 				</tr>
-			<%
-				}					
-			%>
 		</table>
 </div>
 

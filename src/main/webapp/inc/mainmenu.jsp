@@ -13,7 +13,7 @@
 				//로그인전
 		%>	
 				<li class="nav-item">
-					<a class="nav-link" href="<%=request.getContextPath()%>/insertMemberForm.jsp">회원가입</a>
+					<a class="nav-link" href="<%=request.getContextPath()%>/member/addMember.jsp">회원가입</a>
 				</li>
 				<li class="nav-item">
 					<a class="nav-link" href="<%=request.getContextPath()%>/login.jsp">로그인</a>
